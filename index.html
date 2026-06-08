@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sleep Acoustics</title>
+<style
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#07090e}
+.app{
+  background:#07090e;color:#d0d8f0;font-family:'Space Grotesk',sans-serif;
+  display:grid;grid-template-rows:auto 1fr auto;min-height:100vh;height:100%;
+}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px 12px;border-bottom:0.5px solid rgba(160,180,255,0.09);
+}
+.brand-name{font-size:14px;font-weight:500;color:#c8c0f8;letter-spacing:0.03em}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:#333558;letter-spacing:0.09em;margin-top:2px}
+.pill{
+  display:flex;align-items:center;gap:7px;padding:5px 14px;border-radius:20px;
+  border:0.5px solid rgba(160,180,255,0.12);background:rgba(160,180,255,0.04);
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:#404468;letter-spacing:0.08em;transition:all .4s;
+}
+.pill.live{color:#7ee8a2;border-color:rgba(126,232,162,0.28);background:rgba(126,232,162,0.06)}
+.pdot{width:5px;height:5px;border-radius:50%;background:#333558;transition:all .4s}
+.pill.live .pdot{background:#7ee8a2;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.body{display:grid;grid-template-columns:1fr 300px;min-height:0;overflow:hidden}
+.left{display:grid;grid-template-rows:auto auto 1fr;border-right:0.5px solid rgba(160,180,255,0.08);min-height:0}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.16em;color:#2b2e50;text-transform:uppercase;margin-bottom:9px}
+.wave-sec{padding:18px 24px 14px;border-bottom:0.5px solid rgba(160,180,255,0.08)}
+.wave-wrap{position:relative}
+#waveCanvas{width:100%;height:72px;display:block;border-radius:6px;background:#0b0d1a}
+.wave-idle{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:#222440;letter-spacing:0.12em;
+  text-transform:uppercase;transition:opacity .5s;
+}
+.db-sec{
+  padding:14px 24px 12px;border-bottom:0.5px solid rgba(160,180,255,0.08);
+  display:flex;align-items:center;gap:20px;
+}
+.db-num{font-family:'JetBrains Mono',monospace;font-size:52px;font-weight:300;line-height:1;color:#7ee8a2;transition:color .4s;min-width:96px}
+.db-unit{font-family:'JetBrains Mono',monospace;font-size:9px;color:#2b2e50;letter-spacing:.07em;margin-top:4px}
+.bar-col{flex:1;display:flex;flex-direction:column;gap:6px}
+.bar-track{height:5px;border-radius:3px;background:#0d0f1e;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;width:0%;transition:width .12s,background .4s;background:#7ee8a2}
+.bar-ticks{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;color:#222440}
+.freq-sec{padding:14px 24px 16px;display:flex;flex-direction:column}
+#freqCanvas{width:100%;flex:1;display:block;min-height:100px}
+.freq-tags{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+.ftag{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#363860;letter-spacing:.05em}
+.fdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.right{display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+.score-sec{
+  padding:22px 22px 18px;border-bottom:0.5px solid rgba(160,180,255,0.08);
+  display:flex;flex-direction:column;align-items:center;
+}
+.ring-wrap{position:relative;width:120px;height:120px;margin:0 auto}
+#scoreRing{width:100%;height:100%}
+.ring-ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-num{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:300;line-height:1;transition:color .5s;color:#333558}
+.ring-of{font-family:'JetBrains Mono',monospace;font-size:9px;color:#333558;margin-top:2px}
+.verdict{margin-top:11px;font-size:11px;font-weight:500;color:#333558;transition:color .5s;letter-spacing:.02em}
+.metrics-sec{padding:16px 20px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.met-card{
+  background:rgba(160,180,255,0.04);border:0.5px solid rgba(160,180,255,0.10);
+  border-radius:10px;padding:11px 14px;transition:border-color .3s;
+}
+.met-card:hover{border-color:rgba(160,180,255,0.22)}
+.met-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.met-name{font-family:'JetBrains Mono',monospace;font-size:8px;color:#404468;letter-spacing:.12em;text-transform:uppercase}
+.met-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:400;transition:color .4s;color:#333558}
+.met-bar{height:3px;border-radius:2px;background:#0d0f1e;overflow:hidden}
+.met-fill{height:100%;border-radius:2px;transition:width .5s,background .4s}
+.rec-sec{padding:14px 20px 18px;border-top:0.5px solid rgba(160,180,255,0.08)}
+.rec-card{
+  background:rgba(160,180,255,0.04);border:0.5px solid rgba(160,180,255,0.10);
+  border-radius:10px;padding:12px 14px;margin-top:8px;
+}
+.rec-text{font-size:11px;color:#505878;line-height:1.8;font-weight:400}
+.footer{
+  padding:12px 28px;border-top:0.5px solid rgba(160,180,255,0.08);
+  display:flex;align-items:center;gap:14px;background:#07090e;
+}
+.btn{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;
+  padding:9px 22px;border-radius:7px;cursor:pointer;transition:all .2s;
+  border:0.5px solid rgba(160,180,255,0.22);background:rgba(160,180,255,0.05);color:#7880c8;
+}
+.btn:hover{background:rgba(160,180,255,0.10);color:#c0b8ff}
+.btn.stop{border-color:rgba(240,112,112,0.3);background:rgba(240,112,112,0.05);color:#c07878}
+.btn.stop:hover{background:rgba(240,112,112,0.10)}
+.hint{font-family:'JetBrains Mono',monospace;font-size:9px;color:#222440;letter-spacing:.06em}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
+</head>
+<body>
+<div id="loginPage"
+style="
+width:100%;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#050816;
+position:fixed;
+top:0;
+left:0;
+z-index:9999;
+">
+
+<div
+style="
+width:320px;
+padding:30px;
+border-radius:14px;
+background:rgba(160,180,255,0.05);
+border:1px solid rgba(160,180,255,0.15);
+backdrop-filter:blur(12px);
+">
+
+<h2 style="
+color:#c0d8ff;
+font-family:'JetBrains Mono',monospace;
+margin-bottom:20px;
+">
+SomniSense Login
+</h2>
+
+<input
+id="userInp"
+placeholder="Username"
+style="
+width:100%;
+padding:12px;
+margin-bottom:14px;
+background:#0b1020;
+border:1px solid #243050;
+color:white;
+border-radius:8px;
+">
+
+<input
+id="passInp"
+type="password"
+placeholder="Password"
+style="
+width:100%;
+padding:12px;
+margin-bottom:18px;
+background:#0b1020;
+border:1px solid #243050;
+color:white;
+border-radius:8px;
+">
+
+<button
+onclick="login()"
+style="
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#7ee8a2;
+color:black;
+font-weight:bold;
+cursor:pointer;
+">
+
+Login
+
+</button>
+
+<div
+id="loginMsg"
+style="
+margin-top:12px;
+font-size:12px;
+color:#ff8080;
+font-family:'JetBrains Mono',monospace;
+">
+</div>
+
+</div>
+
+</div>
+<div class="app">
+  <div class="topbar">
+    <div>
+      <div class="brand-name">Sleep Acoustics</div>
+      <div class="brand-sub">room environment analyzer</div>
+    </div>
+    <div class="pill" id="pill"><span class="pdot" id="pdot"></span><span id="ptxt">idle</span></div>
+  </div>
+
+  <div class="body">
+    <div class="left">
+      <div class="wave-sec">
+        <div class="lbl">Waveform</div>
+        <div class="wave-wrap">
+          <canvas id="waveCanvas" width="600" height="72"></canvas>
+          <div class="wave-idle" id="waveIdle">awaiting microphone</div>
+        </div>
+      </div>
+
+      <div class="db-sec">
+        <div>
+          <div class="db-num" id="dbNum">—</div>
+          <div class="db-unit">dB SPL</div>
+        </div>
+        <div class="bar-col">
+          <div class="bar-track"><div class="bar-fill" id="dbBar"></div></div>
+          <div class="bar-ticks">
+            <span>0</span><span>whisper 30</span><span>ideal 40</span><span>loud 70</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="freq-sec">
+        <div class="lbl">Frequency breakdown</div>
+        <canvas id="freqCanvas" width="600" height="140"></canvas>
+        <div class="freq-tags">
+          <div class="ftag"><span class="fdot" style="background:#6b7fe0"></span>Sub-bass &lt;60Hz</div>
+          <div class="ftag"><span class="fdot" style="background:#7ee8a2"></span>Bass 60–250Hz</div>
+          <div class="ftag"><span class="fdot" style="background:#f5c06a"></span>Midrange 250Hz–4kHz</div>
+          <div class="ftag"><span class="fdot" style="background:#f07070"></span>Treble &gt;4kHz</div>
+        </div>
+      </div>
+    </div>
+<div class="wave-sec">
+
+   <div class="lbl">
+      Noise history
+   </div>
+
+   <canvas
+      id="historyCanvas"
+      width="600"
+      height="100">
+   </canvas>
+
+</div>
+
+    <div class="right">
+      <div class="score-sec">
+        <div class="lbl" style="align-self:flex-start;margin-bottom:14px">Sleep score</div>
+        <div class="ring-wrap">
+          <svg id="scoreRing" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#0d0f1e" stroke-width="9"/>
+            <circle id="sArc" cx="60" cy="60" r="50" fill="none" stroke="#333558" stroke-width="9"
+              stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16"
+              transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s,stroke .5s"/>
+          </svg>
+          <div class="ring-ctr">
+            <div class="ring-num" id="scoreNum">—</div>
+            <div class="ring-of">/ 100</div>
+          </div>
+        </div>
+        <div class="verdict" id="verdict">start monitoring</div>
+      </div>
+
+      <div class="met-card">
+
+  <div class="met-name" style="margin-bottom:10px">
+    EVENT LOG
+  </div>
+
+  <table style="width:100%;font-size:10px;color:#c0c8ff">
+
+    <thead>
+      <tr>
+        <th align="left">Time</th>
+        <th align="left">dB</th>
+        <th align="left">Event</th>
+      </tr>
+    </thead>
+
+    <tbody id="logBody"></tbody>
+
+  </table>
+
+</div>
+        <div class="met-card">
+          <div class="met-top"><span class="met-name">Noise floor</span><span class="met-val" id="v1">—</span></div>
+          <div class="met-bar"><div class="met-fill" id="b1" style="width:0%"></div></div>
+        </div>
+        <div class="met-card">
+          <div class="met-top"><span class="met-name">Stability</span><span class="met-val" id="v2">—</span></div>
+          <div class="met-bar"><div class="met-fill" id="b2" style="width:0%"></div></div>
+        </div>
+        <div class="met-card">
+          <div class="met-top"><span class="met-name">High-freq energy</span><span class="met-val" id="v3">—</span></div>
+          <div class="met-bar"><div class="met-fill" id="b3" style="width:0%"></div></div>
+        </div>
+        <div class="met-card">
+          <div class="met-top"><span class="met-name">Spike events</span><span class="met-val" id="v4">—</span></div>
+          <div class="met-bar"><div class="met-fill" id="b4" style="width:0%"></div></div>
+        </div>
+      </div>
+<div class="rec-sec">
+
+    <div class="lbl">
+        Recommendation
+    </div>
+
+    <div class="rec-card">
+
+        <div class="rec-text" id="recText">
+            Start monitoring to receive a real-time sleep environment assessment.
+        </div>
+
+        <div
+            id="soundDetect"
+            style="
+            margin-top:10px;
+            font-size:11px;
+            color:#7ee8a2;
+            font-family:'JetBrains Mono',monospace;
+            ">
+
+            Detected: Waiting...
+
+        </div>
+
+    </div>
+
+</div>
+      
+  <div class="footer">
+    <button class="btn"
+ id="mainBtn"
+ onclick="toggleMic()"
+>▶️ start monitoring
+</button>
+<button class="btn"
+onclick="downloadReport()">
+
+Download Report
+
+</button>
+    <span class="hint"
+ id="hintTxt">
+microphone access required
+</span>
+  </div>
+</div>
+
+<script>
+let actx,analyser,src,stream,raf;
+let model,maxPredictions;
+let on=false,dbHist=[],spikes=0,frames=0;
+let eventLog=[];
+let startTime;
+const CIRC=314.16;
+const $=id=>document.getElementById(id);
+
+async function toggleMic(){on?stopMic():await startMic()}
+
+async function startMic(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    actx=new(window.AudioContext||window.webkitAudioContext)();
+    analyser=actx.createAnalyser();
+    analyser.fftSize=2048;analyser.smoothingTimeConstant=0.84;
+    src=actx.createMediaStreamSource(stream);src.connect(analyser);
+    on=true;
+    startTime = Date.now();
+    dbHist=[];
+    spikes=0;
+    frames=0;
+    $('pill').classList.add('live');$('ptxt').textContent='monitoring';
+    $('mainBtn').textContent='■ stop monitoring';$('mainBtn').classList.add('stop');
+    $('hintTxt').textContent='analyzing room acoustics';
+    $('waveIdle').style.opacity='0';
+    loop();
+  }catch(e){$('hintTxt').textContent='microphone permission denied'}
+}
+
+function stopMic(){
+  on=false;cancelAnimationFrame(raf);
+  stream&&stream.getTracks().forEach(t=>t.stop());
+  actx&&actx.close();
+  $('pill').classList.remove('live');$('ptxt').textContent='idle';
+  $('mainBtn').textContent='▶️ start monitoring';$('mainBtn').classList.remove('stop');
+  $('hintTxt').textContent='session ended';
+  $('waveIdle').style.opacity='1';
+}
+
+function rms2db(d){
+  let s=0;
+  for(let i=0;i<d.length;i++){const v=(d[i]-128)/128;s+=v*v;}
+  const r=Math.sqrt(s/d.length);
+  return r<0.0001?0:Math.max(0,Math.round(20*Math.log10(r)+90));
+}
+
+function loop(){
+  if(!on)return;
+  raf=requestAnimationFrame(loop);
+  const elapsed =
+  Math.floor((Date.now()-startTime)/1000);
+  $('hintTxt').textContent =
+ 'Monitoring: ' + elapsed + ' sec';
+  frames++;
+  const n=analyser.frequencyBinCount;
+  const td=new Uint8Array(n),fd=new Uint8Array(n);
+  analyser.getByteTimeDomainData(td);analyser.getByteFrequencyData(fd);
+  drawWave(td);drawFreq(fd);drawHistory();
+  const db=rms2db(td);
+  dbHist.push(db);if(dbHist.length>360)dbHist.shift();
+  if(db>65&&dbHist.length>2&&dbHist[dbHist.length-2]<52){
+
+    spikes++;
+
+    const now = new Date();
+
+    eventLog.push({
+        time: now.toLocaleTimeString(),
+        db: db,
+        event: "Noise Spike"
+    });
+
+    updateLogTable();
+}
+  updateDB(db);
+  if(frames%15===0)updateMetrics(fd,db);
+}
+
+function sigCol(pct){return pct>=70?'#7ee8a2':pct>=45?'#f5c06a':'#f07070'}
+
+function updateDB(db){
+  const pct=Math.max(0,100-Math.max(0,db-25)*2.2);
+  const c=sigCol(pct);
+  $('dbNum').textContent=db;$('dbNum').style.color=c;
+  $('dbBar').style.width=Math.min(100,(db/85)*100)+'%';
+  $('dbBar').style.background=c;
+}
+
+function updateMetrics(fd,db){
+  const sr=actx.sampleRate,bHz=sr/analyser.fftSize;
+  let sub=0,bass=0,mid=0,treb=0,tot=0;
+  for(let i=0;i<fd.length;i++){
+    const hz=i*bHz,v=fd[i];tot+=v;
+    if(hz<60)sub+=v;else if(hz<250)bass+=v;else if(hz<4000)mid+=v;else treb+=v;
+  }
+  const avg=dbHist.length?Math.round(dbHist.reduce((a,b)=>a+b,0)/dbHist.length):0;
+  const va=dbHist.slice(-60).reduce((s,v)=>s+Math.pow(v-avg,2),0)/Math.max(1,Math.min(60,dbHist.length));
+  const stab=Math.max(0,Math.round(100-Math.sqrt(va)*3));
+  const hfR=tot>0?Math.round((treb/tot)*100):0;
+  const ns=Math.max(0,Math.round(100-Math.max(0,avg-25)*2.2));
+  const hs=Math.max(0,100-hfR*2.5);
+  const ss=Math.max(0,100-spikes*8);
+  const score=Math.round(ns*0.35+stab*0.3+hs*0.2+ss*0.15);
+  setMet('v1','b1',Math.round(ns)+'%',ns);
+  setMet('v2','b2',stab+'%',stab);
+  setMet('v3','b3',hfR+'% energy',hs);
+  setMet('v4','b4',spikes+' events',ss);
+  setScore(score);
+  setRec(avg,stab,hfR,spikes,score);
+}
+
+function setMet(vi,bi,label,pct){
+  const c=sigCol(pct);
+  $(vi).textContent=label;$(vi).style.color=c;
+  $(bi).style.width=Math.min(100,Math.max(0,pct))+'%';
+  $(bi).style.background=c;
+}
+
+function setScore(s){
+  const c=sigCol(s);
+  $('scoreNum').textContent=s;$('scoreNum').style.color=c;
+  $('sArc').style.stroke=c;
+  $('sArc').style.strokeDashoffset=CIRC-(s/100)*CIRC;
+  $('verdict').textContent=s>=80?'excellent for sleep':s>=65?'great for sleep':s>=50?'acceptable':s>=35?'poor conditions':'not suitable';
+  $('verdict').style.color=c;
+}
+
+function setRec(db,stab,hf,sp,score){
+  let msg;
+  if(score>=80)msg='Room acoustics are excellent for sleep — low noise floor, stable levels, minimal high-frequency energy.';
+  else if(db>60)msg='Noise level ('+db+' dB) is too high for restful sleep. Ideal environments stay below 35 dB. Try earplugs or a white noise machine.';
+  else if(stab<50)msg='Sound levels are fluctuating significantly. Irregular noise disrupts sleep cycles — try identifying and removing intermittent sources.';
+  else if(hf>30)msg='Elevated high-frequency content detected (voices, fans, electronics). These frequencies are especially disruptive to REM sleep.';
+  else if(sp>3)msg=sp+' sudden sound spikes detected. Sharp sounds cause micro-arousals — consider acoustic sealing or soft door dampening.';
+  else msg='Moderate sound environment. Small reductions to background noise could meaningfully improve your sleep quality.';
+  $('recText').textContent=msg;
+}
+
+function drawWave(data){
+  const cv=$('waveCanvas'),c=cv.getContext('2d'),w=cv.width,h=cv.height;
+  c.clearRect(0,0,w,h);
+  c.strokeStyle='rgba(140,160,255,0.55)';c.lineWidth=1.2;c.beginPath();
+  const step=w/data.length;
+  for(let i=0;i<data.length;i++){
+    const y=((data[i]-128)/128)*(h*0.42)+(h/2);
+    i===0?c.moveTo(0,y):c.lineTo(i*step,y);
+  }
+  c.stroke();
+  c.strokeStyle='rgba(140,160,255,0.07)';c.lineWidth=0.5;
+  c.beginPath();c.moveTo(0,h/2);c.lineTo(w,h/2);c.stroke();
+}
+
+function drawFreq(data){
+  const cv=$('freqCanvas'),c=cv.getContext('2d'),w=cv.width,h=cv.height;
+  c.clearRect(0,0,w,h);
+  const bands=[
+    {end:0.03,col:'#6b7fe0'},
+    {end:0.12,col:'#7ee8a2'},
+    {end:0.55,col:'#f5c06a'},
+    {end:1.0, col:'#f07070'}
+  ];
+  const bars=92,bw=(w/bars)-1;
+  let bi=0;
+  for(let i=0;i<bars;i++){
+    const pct=i/bars;
+    while(bi<bands.length-1&&pct>bands[bi].end)bi++;
+    const di=Math.floor((i/bars)*data.length*0.6);
+    const val=data[di]/255,bh=val*h*0.92,x=i*(bw+1);
+    c.fillStyle=bands[bi].col+'bb';c.fillRect(x,h-bh,bw,bh);
+    c.fillStyle=bands[bi].col+'18';c.fillRect(x,0,bw,h-bh);
+  }
+  [0.25,0.5,0.75].forEach(y=>{
+    c.strokeStyle='rgba(140,160,255,0.05)';c.lineWidth=0.5;
+    c.beginPath();c.moveTo(0,h*y);c.lineTo(w,h*y);c.stroke();
+  });
+}
+function updateLogTable(){
+
+    const body = $('logBody');
+
+    body.innerHTML = '';
+
+    eventLog.slice(-5).reverse().forEach(log => {
+
+        body.innerHTML += `
+        <tr>
+            <td>${log.time}</td>
+            <td>${log.db}</td>
+            <td>${log.event}</td>
+        </tr>
+        `;
+    });
+}
+function drawHistory(){
+
+    const cv = $('historyCanvas');
+
+    const c = cv.getContext('2d');
+
+    const w = cv.width;
+
+    const h = cv.height;
+
+    c.clearRect(0,0,w,h);
+
+    c.strokeStyle = '#7ee8a2';
+
+    c.lineWidth = 2;
+
+    c.beginPath();
+
+    const maxPoints = 100;
+
+    const data = dbHist.slice(-maxPoints);
+
+    data.forEach((v,i)=>{
+
+        const x = (i/maxPoints)*w;
+
+        const y = h - ((v/80)*h);
+
+        if(i===0)
+            c.moveTo(x,y);
+
+        else
+            c.lineTo(x,y);
+    });
+
+    c.stroke();
+}
+function downloadReport(){
+
+    const avg =
+    dbHist.length
+    ?
+    Math.round(
+      dbHist.reduce((a,b)=>a+b,0)
+      / dbHist.length
+    )
+    :
+    0;
+
+    const report = `
+SOMNISENSE REPORT
+
+Average Noise: ${avg} dB
+
+Spike Events: ${spikes}
+
+Monitoring Duration:
+${Math.floor((Date.now()-startTime)/1000)} sec
+
+Recommendation:
+${$('recText').textContent}
+`;
+
+    const blob = new Blob(
+      [report],
+      {type:'text/plain'}
+    );
+
+    const a =
+    document.createElement('a');
+
+    a.href =
+    URL.createObjectURL(blob);
+
+    a.download =
+    'somnisense_report.txt';
+
+    a.click();
+}
+let recognizer;
+
+async function loadAIModel(){
+
+    const URL =
+    "https://teachablemachine.withgoogle.com/models/wnfGOzP67/";
+
+    const checkpointURL = URL + "model.json";
+
+    const metadataURL = URL + "metadata.json";
+
+    recognizer =
+    speechCommands.create(
+        "BROWSER_FFT",
+        undefined,
+        checkpointURL,
+        metadataURL
+    );
+
+    await recognizer.ensureModelLoaded();
+
+    recognizer.listen(result => {
+
+        const scores =
+        result.scores;
+
+        const labels =
+        recognizer.wordLabels();
+
+        let bestIndex = 0;
+
+        for(let i=1;i<scores.length;i++){
+
+            if(scores[i] > scores[bestIndex]){
+
+                bestIndex = i;
+            }
+        }
+
+        $('soundDetect').textContent =
+        'Detected: ' +
+        labels[bestIndex] +
+        ' (' +
+        Math.round(scores[bestIndex]*100)
+        + '%)';
+    },
+
+    {
+        probabilityThreshold: 0.75
+    });
+}
+loadAIModel();
+function login(){
+
+    const u =
+    $('userInp').value;
+
+    const p =
+    $('passInp').value;
+
+    if(
+        u === 'admin'
+        &&
+        p === 'somnisense123'
+    ){
+
+        $('loginPage').style.display =
+        'none';
+    }
+
+    else{
+
+        $('loginMsg').textContent =
+        'Invalid credentials';
+    }
+}
+</script>
+</body>
+</html>
