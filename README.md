@@ -1,10 +1,10 @@
-# 🌙 SomniSense – AI-Powered Sleep Acoustics Analyzer
+# SomniSense – AI-Powered Sleep Acoustics Analyzer
 
 SomniSense is a web-based application that monitors ambient sound during sleep and analyzes environmental conditions affecting sleep quality. Using real-time audio processing and AI-based sound recognition, the system provides users with live acoustic analysis, sleep quality metrics, and personalized recommendations.
 
 ---
 
-## 📌 Overview
+## Overview
 
 Poor sleep is often caused by unnoticed environmental noise. SomniSense helps users understand their sleep environment by continuously monitoring surrounding sounds through the device's microphone.
 
@@ -12,24 +12,24 @@ The application performs real-time acoustic analysis, detects sudden noise distu
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎤 Real-time microphone monitoring
-- 📈 Live audio waveform visualization
-- 📊 Frequency spectrum analysis
-- 📉 Noise history graph
-- 🌙 Sleep Quality Score (0–100)
-- 🚨 Automatic noise spike detection
-- 📝 Event logging with timestamps
-- 🤖 AI-powered sound recognition using TensorFlow.js
-- 💡 Dynamic sleep environment recommendations
-- 📄 Downloadable sleep analysis report
-- 🔐 Login interface
-- 📱 Responsive modern dashboard
+- Real-time microphone monitoring
+- Live audio waveform visualization
+- Frequency spectrum analysis
+- Noise history graph
+- Sleep Quality Score (0–100)
+- Automatic noise spike detection
+- Event logging with timestamps
+- AI-powered sound recognition using TensorFlow.js
+- Dynamic sleep environment recommendations
+- Downloadable sleep analysis report
+- Login interface
+- Responsive modern dashboard
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 ### Frontend
 
@@ -50,7 +50,7 @@ The application performs real-time acoustic analysis, detects sudden noise distu
 
 ---
 
-## 🚀 How It Works
+## How It Works
 
 1. User logs into the application.
 2. Microphone permission is requested.
@@ -66,7 +66,7 @@ The application performs real-time acoustic analysis, detects sudden noise distu
 
 ---
 
-## 📊 Dashboard Includes
+## Dashboard Includes
 
 - Live Sound Waveform
 - Frequency Breakdown
@@ -82,7 +82,7 @@ The application performs real-time acoustic analysis, detects sudden noise distu
 
 ---
 
-## 🤖 AI Sound Recognition
+## AI Sound Recognition
 
 SomniSense integrates TensorFlow.js with Google's Teachable Machine Speech Commands model to recognize environmental sounds in real time.
 
@@ -90,7 +90,7 @@ The detected sound and confidence score are displayed live during monitoring.
 
 ---
 
-## 📄 Report Generation
+## Report Generation
 
 The application generates a downloadable report containing:
 
@@ -129,7 +129,7 @@ This project is implemented as a single self-contained HTML file containing the 
 
 ---
 
-## 🎯 Objectives
+## Objectives
 
 - Analyze nighttime environmental noise.
 - Detect disturbances affecting sleep quality.
@@ -139,58 +139,6 @@ This project is implemented as a single self-contained HTML file containing the 
 
 ---
 
-## ▶️ Getting Started
-
-Clone the repository
-
-```bash
-git clone https://github.com/yourusername/SomniSense.git
-```
-
-Open the project
-
-```text
-Open index.html in any modern web browser.
-```
-
-Allow microphone access when prompted.
-
-Login using:
-
-```
-Username: admin
-Password: somnisense123
-```
-
-Click **Start Monitoring** to begin analyzing the sleep environment.
-
----
-
-## 📸 Screenshots
-
-You can add screenshots of:
-
-- Login Screen
-- Main Dashboard
-- Live Monitoring
-- AI Sound Detection
-- Sleep Score
-- Downloaded Report
-
----
-
-## 📚 Learning Outcomes
-
-This project demonstrates practical implementation of:
-
-- Digital Signal Processing (DSP)
-- Browser Audio Processing
-- Machine Learning in the Browser
-- Human-Computer Interaction
-- Data Visualization
-- Real-time Web Applications
-- Environmental Health Monitoring
-
 ## 👨‍💻 Author
 
 **Jangam Matam Sanjana - 1DS25CS098**
@@ -199,16 +147,3 @@ This project demonstrates practical implementation of:
 **Fahim Sadat 1DS25CS016**
 
 B.Tech – Computer Science & Engineering
-
-### Areas of Interest
-
-- Artificial Intelligence
-- Machine Learning
-- Healthcare Technology
-- Web Development
-- Internet of Things (IoT)
-- Human-Centered Computing
-
----
-
-⭐ If you found this project useful, consider giving it a Star!
