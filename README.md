@@ -139,7 +139,7 @@ This project is implemented as a single self-contained HTML file containing the 
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Jangam Matam Sanjana - 1DS25CS098**
 **Jagan Veeran.S - 1DS25CS099**
